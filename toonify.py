@@ -7,7 +7,6 @@ from sklearn.cluster import MiniBatchKMeans
 
 
 
-
 def Quantize_Colors(image, n_clusters):
 	(h, w) = image.shape[:2]
 	image = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
@@ -50,6 +49,9 @@ def toonify_DOG_bilateral(input_image, filename, gray_image):
 
 	blur5 = cv2.GaussianBlur(gray_image,(11,11),0)
 	blur3 = cv2.GaussianBlur(blur5,(9,9),0)
+	median = cv2.medianBlur(input_image, 5)
+	bilateral = cv2.bilateralFilter(input_image, 9, 75, 75)
+	
 	edge = blur5 - blur3
 	edge = cv2.morphologyEx(edge, cv2.MORPH_CLOSE, kernel)
 	#edge = cv2.erode(edge,kernel)
