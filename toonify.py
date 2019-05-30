@@ -45,28 +45,36 @@ def toonify_DOG_bilateral(input_image, filename, gray_image):
 	outputFile = str(filename)[:-4] + '_DoG.jpg'
 	
 	#edge = cv2.Canny(input_image,1500,250)
-	kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(3, 3))
+	kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(4, 4))
 	#edge = cv2.dilate(edge,kernel)
 
-	blur5 = cv2.GaussianBlur(gray_image,(11,11),0)
+	blur5 = cv2.GaussianBlur(gray_image,(13,13),0)
 	blur3 = cv2.GaussianBlur(blur5,(9,9),0)
 	edge = blur5 - blur3
-	edge = cv2.morphologyEx(edge, cv2.MORPH_CLOSE, kernel)
-	#edge = cv2.erode(edge,kernel)
+	# edge = cv2.morphologyEx(edge, cv2.MORPH_CLOSE, kernel)
+	# kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5, 5))
+	# edge = cv2.dilate(edge,kernel)
 
-
-	#cv2.Canny(input_image,100,200)
-	cv2.imwrite(outputFile, edge)
+	edge = cv2.Canny(input_image,170,200)
+	cv2.imwrite("dog.jpg", edge)
 
 	# step2: REGION SMOOTHENING use bilateral filter #
 
-	smooth = cv2.bilateralFilter(input_image, 15, 100, 100)
+	smooth = cv2.bilateralFilter(input_image, 20, 50, 50)
 	smooth = Quantize_Colors(smooth, 15)
-	#cv2.imwrite(outputFile, bi)
+	#cv2.imwrite(outputFile, smooth)
 
 	# step3: combine #
-
-
+	d = 0
+	for i in range(edge.shape[0]):
+		for j in range(edge.shape[1]):
+			if edge[i][j] == 255:
+				d += 1
+				smooth[i][j][0] = 0
+				smooth[i][j][1] = 0 
+				smooth[i][j][2] = 0
+	#print(edge)
+	cv2.imwrite(outputFile, smooth)
 
 
 #def toonify_canny_bilateral()
