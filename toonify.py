@@ -34,75 +34,52 @@ def Quantize_Colors(image, n_clusters):
 	return quant
 
 
-def toonify_DOG_bilateral(input_image, filename, gray_image):
-	# step1: edge detection use DOG #
+def toonify_DOG_bilateral(QN, input_image, filename, gray_image):
+	# step1: edge detection use Canny #
+	input_image = cv2.medianBlur(input_image, 3)
 
-	#gray_image = cv2.medianBlur(gray_image, 7),
+	edge = cv2.Canny(input_image,180,240)
+	kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(2, 2))
+	edge = cv2.dilate(edge,kernel)
 
-	
 
-	outputFile = str(filename)[:-4] + '_DoG.jpg'
-	
-	#edge = cv2.Canny(input_image,1500,250)
-	kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(4, 4))
-	#edge = cv2.dilate(edge,kernel)
-
-	blur5 = cv2.GaussianBlur(gray_image,(13,13),0)
-	blur3 = cv2.GaussianBlur(blur5,(9,9),0)
-	median = cv2.medianBlur(input_image, 5)
-	bilateral = cv2.bilateralFilter(input_image, 9, 75, 75)
-	
-	edge = blur5 - blur3
-	# edge = cv2.morphologyEx(edge, cv2.MORPH_CLOSE, kernel)
-	# kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5, 5))
-	# edge = cv2.dilate(edge,kernel)
-
-	edge = cv2.Canny(input_image,170,200)
-	cv2.imwrite("dog.jpg", edge)
+	cv2.imwrite("edge_C.jpg", edge)
 
 	# step2: REGION SMOOTHENING use bilateral filter #
-
+	
 	smooth = cv2.bilateralFilter(input_image, 20, 50, 50)
-	smooth = Quantize_Colors(smooth, 15)
-	#cv2.imwrite(outputFile, smooth)
-
+	for i in range(5):
+		smooth = cv2.bilateralFilter(smooth, 20, 50, 50)
+	smooth = Quantize_Colors(smooth, QN)
+	
 	# step3: combine #
-	d = 0
+	
 	for i in range(edge.shape[0]):
 		for j in range(edge.shape[1]):
 			if edge[i][j] == 255:
-				d += 1
-				smooth[i][j][0] = 0
-				smooth[i][j][1] = 0 
-				smooth[i][j][2] = 0
-	#print(edge)
+				smooth[i][j][0] /= 2
+				smooth[i][j][1] /= 2 
+				smooth[i][j][2] /= 2
+	outputFile = str(filename)[:-4] + '_toonified.jpg'
 	cv2.imwrite(outputFile, smooth)
-
-
-#def toonify_canny_bilateral()
-
+	
 
 
 
 
 
 
-
-
-
-
-if len(sys.argv) == 2:
-	filename = (sys.argv[1])
+if len(sys.argv) >= 2:
+	filename = (sys.argv[2])
 else:
 	print ("ERROR INPUT ")
 	exit()
-
+if (sys.argv[1] == "-m"):
+	QN = 5;
+elif (sys.argv[1] == "-p"): 
+	QN = 10;
 input_image = cv2.imread(filename, cv2.IMREAD_COLOR)
 input_image_gray = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
-#result = cv2.blur(input_image, (5,5))
 
-toonify_DOG_bilateral(input_image, filename, input_image_gray)
-#cv2.imshow("Origin", input_image)
-#cv2.imshow("Blur", result)
-#cv2.waitKey(0)
+toonify_DOG_bilateral(QN, input_image, filename, input_image_gray)
 
